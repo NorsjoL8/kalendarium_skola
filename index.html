@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalendarium – Centrum för Skola på RISE</title>
+<style>
+  :root {
+    --navy: #1E2761;
+    --ice: #CADCFC;
+    --white: #FFFFFF;
+    --ink: #1a1a2e;
+    --muted: #6b7280;
+    --green: #1a7f5a;
+    --green-bg: #e3f5ee;
+    --amber: #a06a00;
+    --amber-bg: #fdf1dc;
+    --grey: #6b7280;
+    --grey-bg: #eceef1;
+    --card-border: #e5e7eb;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f7f8fb;
+    color: var(--ink);
+  }
+  header {
+    background: var(--navy);
+    color: var(--white);
+    padding: 2.2rem 1.5rem 1.8rem;
+  }
+  header .inner {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+  header h1 {
+    margin: 0 0 0.35rem;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+  }
+  header p {
+    margin: 0;
+    color: var(--ice);
+    font-size: 0.95rem;
+  }
+  #updated {
+    margin-top: 0.6rem;
+    font-size: 0.8rem;
+    color: var(--ice);
+    opacity: 0.85;
+  }
+  .controls {
+    max-width: 980px;
+    margin: -1.6rem auto 0;
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(30,39,97,0.12);
+    padding: 1rem 1.2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    position: relative;
+    z-index: 2;
+  }
+  .controls input[type="text"] {
+    flex: 1 1 220px;
+    padding: 0.55rem 0.8rem;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: inherit;
+  }
+  .controls select {
+    padding: 0.55rem 0.6rem;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    background: var(--white);
+  }
+  .controls label.chk {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+    padding: 0.55rem 0.2rem;
+  }
+  main {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+  .month-heading {
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 2.2rem 0 0.9rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid var(--ice);
+  }
+  .month-heading:first-child { margin-top: 0; }
+  .card {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 1rem;
+    background: var(--white);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 0.8rem;
+  }
+  .card.past { opacity: 0.55; }
+  .date-block {
+    text-align: center;
+    border-right: 1px solid var(--card-border);
+    padding-right: 0.8rem;
+  }
+  .date-block .day {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--navy);
+    line-height: 1;
+  }
+  .date-block .mon {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 0.15rem;
+  }
+  .date-block .range {
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-top: 0.3rem;
+  }
+  .card-body h3 {
+    margin: 0 0 0.35rem;
+    font-size: 1.05rem;
+    color: var(--ink);
+  }
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+  }
+  .pill {
+    display: inline-block;
+    font-size: 0.72rem;
+    padding: 0.18rem 0.55rem;
+    border-radius: 999px;
+    background: var(--ice);
+    color: var(--navy);
+    font-weight: bold;
+  }
+  .pill.status-confirmed { background: var(--green-bg); color: var(--green); }
+  .pill.status-tentative { background: var(--amber-bg); color: var(--amber); }
+  .pill.status-discontinued { background: var(--grey-bg); color: var(--grey); text-decoration: line-through; }
+  .desc {
+    font-size: 0.87rem;
+    color: #374151;
+    line-height: 1.45;
+    margin: 0 0 0.5rem;
+  }
+  .foot-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .foot-row a {
+    color: var(--navy);
+    font-weight: bold;
+    text-decoration: none;
+  }
+  .foot-row a:hover { text-decoration: underline; }
+  #empty {
+    text-align: center;
+    color: var(--muted);
+    padding: 3rem 1rem;
+    font-size: 0.95rem;
+  }
+  #loading {
+    text-align: center;
+    color: var(--muted);
+    padding: 3rem 1rem;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="inner">
+    <h1>Kalendarium – Centrum för Skola på RISE</h1>
+    <p>Events, mässor, seminarier och konferenser inom skola &amp; utbildning som vi bevakar</p>
+    <div id="updated"></div>
+  </div>
+</header>
+
+<div class="controls">
+  <input type="text" id="search" placeholder="Sök event, arrangör, målgrupp...">
+  <select id="typeFilter"><option value="">Alla typer</option></select>
+  <select id="statusFilter"><option value="">Alla statusar</option></select>
+  <label class="chk"><input type="checkbox" id="hidePast"> Dölj passerade events</label>
+</div>
+
+<main>
+  <div id="loading">Hämtar kalendern...</div>
+  <div id="events"></div>
+  <div id="empty" style="display:none">Inga events matchar din sökning/filter.</div>
+</main>
+
+<script>
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtfM1BPY_QIPt0D9EMKGBH6kEx7ZH7352U-M9z-7If5glYm_nv7qXZ7GJiaMhRVA/pub?gid=1337834015&single=true&output=csv";
+
+const MONTHS = ["januari","februari","mars","april","maj","juni","juli","augusti","september","oktober","november","december"];
+
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i], next = text[i+1];
+    if (inQuotes) {
+      if (c === '"' && next === '"') { field += '"'; i++; }
+      else if (c === '"') { inQuotes = false; }
+      else { field += c; }
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { row.push(field); field = ""; }
+      else if (c === '\r') { /* skip */ }
+      else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ""; }
+      else { field += c; }
+    }
+  }
+  if (field.length || row.length) { row.push(field); rows.push(row); }
+  return rows.filter(r => r.some(v => v.trim().length));
+}
+
+function toObjects(rows) {
+  const headers = rows[0].map(h => h.trim());
+  return rows.slice(1).map(r => {
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = (r[i] || "").trim());
+    return obj;
+  });
+}
+
+function statusClass(status) {
+  const s = (status || "").toLowerCase();
+  if (s.includes("avveckl")) return "status-discontinued";
+  if (s.includes("bekräft") || s.includes("genomförd")) return "status-confirmed";
+  return "status-tentative";
+}
+
+function fmtDateRange(start, end) {
+  if (!start) return { day: "?", mon: "", range: "Datum ej fastställt" };
+  const s = new Date(start + "T00:00:00");
+  const day = s.getDate();
+  const mon = MONTHS[s.getMonth()].slice(0,3);
+  let range = s.toLocaleDateString("sv-SE");
+  if (end && end !== start) {
+    const e = new Date(end + "T00:00:00");
+    range = s.toLocaleDateString("sv-SE") + " – " + e.toLocaleDateString("sv-SE");
+  }
+  return { day, mon, range, dateObj: s };
+}
+
+let allEvents = [];
+
+async function load() {
+  try {
+    const res = await fetch(CSV_URL, { cache: "no-store" });
+    const text = await res.text();
+    const rows = parseCSV(text);
+    allEvents = toObjects(rows);
+    document.getElementById("updated").textContent =
+      "Senast hämtad: " + new Date().toLocaleString("sv-SE");
+    populateFilters();
+    render();
+  } catch (err) {
+    document.getElementById("loading").textContent =
+      "Kunde inte hämta kalendern just nu. Kontrollera din internetuppkoppling och ladda om sidan.";
+    console.error(err);
+  }
+}
+
+function populateFilters() {
+  const types = [...new Set(allEvents.map(e => e["Typ"]).filter(Boolean))].sort();
+  const statuses = [...new Set(allEvents.map(e => e["Status"]).filter(Boolean))].sort();
+  const typeSel = document.getElementById("typeFilter");
+  const statusSel = document.getElementById("statusFilter");
+  types.forEach(t => {
+    const o = document.createElement("option");
+    o.value = t; o.textContent = t;
+    typeSel.appendChild(o);
+  });
+  statuses.forEach(s => {
+    const o = document.createElement("option");
+    o.value = s; o.textContent = s;
+    statusSel.appendChild(o);
+  });
+}
+
+function render() {
+  document.getElementById("loading").style.display = "none";
+  const q = document.getElementById("search").value.toLowerCase();
+  const typeF = document.getElementById("typeFilter").value;
+  const statusF = document.getElementById("statusFilter").value;
+  const hidePast = document.getElementById("hidePast").checked;
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  let filtered = allEvents.filter(e => {
+    if (typeF && e["Typ"] !== typeF) return false;
+    if (statusF && e["Status"] !== statusF) return false;
+    if (q) {
+      const hay = [e["Namn på event"], e["Arrangör"], e["Målgrupp"], e["Beskrivning"]]
+        .join(" ").toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  filtered.sort((a, b) => {
+    const da = a["Datum (start)"] || "9999";
+    const db = b["Datum (start)"] || "9999";
+    return da.localeCompare(db);
+  });
+
+  if (hidePast) {
+    filtered = filtered.filter(e => {
+      if (!e["Datum (start)"]) return true;
+      const d = new Date(e["Datum (start)"] + "T00:00:00");
+      return d >= today;
+    });
+  }
+
+  const container = document.getElementById("events");
+  container.innerHTML = "";
+  document.getElementById("empty").style.display = filtered.length ? "none" : "block";
+
+  let lastMonthKey = null;
+  filtered.forEach(e => {
+    const { day, mon, range, dateObj } = fmtDateRange(e["Datum (start)"], e["Datum (slut)"]);
+    const isPast = dateObj && dateObj < today;
+
+    if (dateObj) {
+      const monthKey = dateObj.getFullYear() + "-" + dateObj.getMonth();
+      if (monthKey !== lastMonthKey) {
+        lastMonthKey = monthKey;
+        const h = document.createElement("div");
+        h.className = "month-heading";
+        h.textContent = MONTHS[dateObj.getMonth()] + " " + dateObj.getFullYear();
+        container.appendChild(h);
+      }
+    } else if (lastMonthKey !== "tbd") {
+      lastMonthKey = "tbd";
+      const h = document.createElement("div");
+      h.className = "month-heading";
+      h.textContent = "Datum ej fastställt";
+      container.appendChild(h);
+    }
+
+    const card = document.createElement("div");
+    card.className = "card" + (isPast ? " past" : "");
+    card.innerHTML = `
+      <div class="date-block">
+        <div class="day">${day}</div>
+        <div class="mon">${mon}</div>
+        <div class="range">${range}</div>
+      </div>
+      <div class="card-body">
+        <h3>${escapeHtml(e["Namn på event"] || "")}</h3>
+        <div class="meta-row">
+          ${e["Typ"] ? `<span class="pill">${escapeHtml(e["Typ"])}</span>` : ""}
+          ${e["Status"] ? `<span class="pill ${statusClass(e["Status"])}">${escapeHtml(e["Status"])}</span>` : ""}
+        </div>
+        <p class="desc">${escapeHtml(e["Beskrivning"] || "")}</p>
+        <div class="foot-row">
+          <span>${escapeHtml(e["Arrangör"] || "")}${e["Målgrupp"] ? " · Målgrupp: " + escapeHtml(e["Målgrupp"]) : ""}</span>
+          ${e["Länk"] ? `<a href="${escapeAttr(e["Länk"])}" target="_blank" rel="noopener">Läs mer →</a>` : ""}
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+function escapeAttr(str) {
+  return String(str).replace(/"/g, "&quot;");
+}
+
+document.getElementById("search").addEventListener("input", render);
+document.getElementById("typeFilter").addEventListener("change", render);
+document.getElementById("statusFilter").addEventListener("change", render);
+document.getElementById("hidePast").addEventListener("change", render);
+
+load();
+</script>
+</body>
+</html>
